@@ -8,4 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class Costumer extends Model
 {
     use HasFactory;
+
+    public function roomclasses()
+    {
+        return $this->belongsToMany(Roomclass::class, 'roomclass_customer');
+    }
 }
