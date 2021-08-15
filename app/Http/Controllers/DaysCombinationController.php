@@ -2,20 +2,16 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Room;
-use Exception;
+use App\Models\DaysCombinations;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
-use Symfony\Component\HttpKernel\Event\ResponseEvent;
-use Symfony\Component\HttpKernel\Exception\HttpException;
-use Throwable;
 
-class RoomController extends Controller
+class DaysCombinationController extends Controller
 {
 
     public function __construct()
     {
-        $this->setModelName(Room::class);
+        $this->setModelName(DaysCombinations::class);
     }
 
     /**
@@ -23,36 +19,28 @@ class RoomController extends Controller
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
-     * 
-     * @throws Throwable
      */
     public function store(Request $request)
     {
         $request->validate([
-            'number' => 'required|digits:3|max:3',
-            'size' => 'required|max:8',
-            'location' => 'required|string|max:255',
-            'type' => 'nullable|string|max:255',
+            'days' => 'required|[^a-zA-Z,/|]'
         ]);
 
         $model = $this->getModelName();
-        $room = new $model([
-            'number' => $request['number'],
-            'size' => $request['size'],
-            'location' => $request['location'],
-            'type' => $request['type'] ? $request['type'] : 'Hall',
+        $daysCombination = new $model([
+            'days' => $request['days']
         ]);
 
         try
         {
-            $room->saveOrFail();
+            $daysCombination->saveOrFail();
         }
         catch (\Throwable $error)
         {
             return self::throw($error);
         }
 
-        return new Response(json_encode($room), 201);
+        return new Response(json_encode($daysCombination), 201);
     }
 
     /**
@@ -61,8 +49,6 @@ class RoomController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @param  int  $id
      * @return \Illuminate\Http\Response
-     * 
-     * @throws Throwable
      */
     public function update(Request $request, $id)
     {
@@ -76,44 +62,29 @@ class RoomController extends Controller
             return self::throw($error, 404);
         }
 
-        if (!$request->has('number'))
+        if (!$request->has('days'))
         {
-            $request['number'] = null;
-        }
-        if (!$request->has('size'))
-        {
-            $request['size'] = null;
-        }
-        if (!$request->has('location'))
-        {
-            $request['location'] = null;
-        }
-        if (!$request->has('type'))
-        {
-            $request['type'] = null;
+            $request['days'] = null;
         }
 
         $request->validate([
-            'number' => 'nullable|digits:3|max:3',
-            'size' => 'nullable|max:8',
-            'location' => 'nullable|string|max:255',
-            'type' => 'nullable|string|max:255',
+            'days' => 'required|[^a-zA-Z,/|]'
         ]);
 
         try
         {
-            $updated_room = array();
+            $updated_daysCombination = array();
             foreach ($request->all() as $key => $value)
             {
                 if ($value !== null)
                 {
-                    $updated_room[$key] = $value;
+                    $updated_daysCombination[$key] = $value;
                 }
             }
 
             $this->getModelName()::query()
                 ->where('id', '=', $id)
-                ->update($updated_room);
+                ->update($updated_daysCombination);
         }
         catch (\Throwable $error)
         {

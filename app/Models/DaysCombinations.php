@@ -8,4 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 class DaysCombinations extends Model
 {
     use HasFactory;
+
+    protected $fillable = ['days'];
 }
