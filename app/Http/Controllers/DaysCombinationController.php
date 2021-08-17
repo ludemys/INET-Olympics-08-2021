@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Helpers\ValidationInterface;
 use App\Models\DaysCombinations;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 
-class DaysCombinationController extends Controller
+class DaysCombinationController extends Controller implements ValidationInterface
 {
 
     public function __construct()
     {
         $this->setModelName(DaysCombinations::class);
+
+        parent::__construct();
     }
 
     /**
@@ -22,9 +25,8 @@ class DaysCombinationController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'days' => 'required|[^a-zA-Z,/|]'
-        ]);
+
+        self::validateIndividually($request);
 
         $model = $this->getModelName();
         $daysCombination = new $model([
@@ -43,57 +45,10 @@ class DaysCombinationController extends Controller
         return new Response(json_encode($daysCombination), 201);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
+    public static function validateIndividually(Request $request)
     {
-        // Verifies if the register exists
-        try
-        {
-            $this->getModelName()::findOrFail($id);
-        }
-        catch (\Throwable $error)
-        {
-            return self::throw($error, 404);
-        }
-
-        if (!$request->has('days'))
-        {
-            $request['days'] = null;
-        }
-
         $request->validate([
-            'days' => 'required|[^a-zA-Z,/|]'
+            'days' => 'required|[^a-zA-Z,/|]|unique:days_combinations,days'
         ]);
-
-        try
-        {
-            $updated_daysCombination = array();
-            foreach ($request->all() as $key => $value)
-            {
-                if ($value !== null)
-                {
-                    $updated_daysCombination[$key] = $value;
-                }
-            }
-
-            $this->getModelName()::query()
-                ->where('id', '=', $id)
-                ->update($updated_daysCombination);
-        }
-        catch (\Throwable $error)
-        {
-            return self::throw($error);
-        }
-
-        return new Response(
-            json_encode($this->getModelName()::find($id)),
-            200
-        );
     }
 }

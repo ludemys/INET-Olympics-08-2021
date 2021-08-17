@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Routing\Controller as BaseController;
 use Throwable;
@@ -18,6 +20,13 @@ class Controller extends BaseController
      * @param string|object::class
      */
     protected $modelName;
+    protected $fillable;
+
+    public function __construct()
+    {
+        $model = new $this->modelName;
+        $this->setFillable($model->getFillable());
+    }
 
     /**
      * Display a listing of the resource.
@@ -50,14 +59,70 @@ class Controller extends BaseController
     {
         try
         {
-            $room = $this->getModelName()::findOrFail($id);
+            $model = $this->getModelName()::findOrFail($id);
         }
         catch (\Throwable $error)
         {
             return self::throw($error, 404);
         }
 
-        return new Response(json_encode($room), 200);
+        return new Response(json_encode($model), 200);
+    }
+
+    /**
+     * Update the specified resource in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     * @throws Throwable
+     */
+    public function update(Request $request, $id)
+    {
+        // Verifies if the register exists
+        try
+        {
+            $this->getModelName()::findOrFail($id);
+        }
+        catch (\Throwable $error)
+        {
+            return self::throw($error, 404);
+        }
+
+        foreach ($this->fillable as $column)
+        {
+            if ($request->has($column))
+            {
+                $request[$column] = null;
+            }
+        }
+
+        self::validateIndividually($request);
+
+        try
+        {
+            $model = array();
+            foreach ($request->all() as $key => $value)
+            {
+                if ($value !== null)
+                {
+                    $model[$key] = $value;
+                }
+            }
+
+            $this->getModelName()::query()
+                ->where('id', '=', $id)
+                ->update($model);
+        }
+        catch (\Throwable $error)
+        {
+            return self::throw($error);
+        }
+
+        return new Response(
+            json_encode($this->getModelName()::find($id)),
+            200
+        );
     }
 
     /**
@@ -126,5 +191,51 @@ class Controller extends BaseController
         $this->modelName = $modelName;
 
         return $this;
+    }
+
+    /**
+     * Get the value of fillable
+     */
+    public function getFillable()
+    {
+        return $this->fillable;
+    }
+
+    /**
+     * Set the value of fillable
+     *
+     * @return  self
+     */
+    public function setFillable($fillable)
+    {
+        $this->fillable = $fillable;
+
+        return $this;
+    }
+
+    public static function validateIndividually(Request $request)
+    {
+        self::throw(new \Exception("A server loading error has occurred", 500));
+    }
+
+    /**
+     * @param string $number
+     * @param int $upTo
+     * 
+     * @return string
+     */
+    protected static function addZerosToLeft(string $number, int $upTo)
+    {
+        $zeros = '';
+
+        if (strlen($number) < $upTo)
+        {
+            for ($i = 0; $i < $upTo - $number; $i++)
+            {
+                $zeros .= '0';
+            }
+        }
+
+        return $zeros . $number;
     }
 }

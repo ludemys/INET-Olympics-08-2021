@@ -7,5 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class RoomclassCustomer extends Model
 {
+    protected $table = 'roomclass_customer';
+
     use HasFactory;
 }

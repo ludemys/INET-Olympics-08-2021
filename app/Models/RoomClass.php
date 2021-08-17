@@ -9,6 +9,8 @@ class Roomclass extends Model
 {
     use HasFactory;
 
+    protected $fillable = ['number', 'description', 'price', 'days_combination_id', 'room_id', 'professor_id'];
+
     public function daysCombination()
     {
         return $this->hasOne(DaysCombinations::class, 'days_combination_id');

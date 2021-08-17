@@ -17,7 +17,7 @@ class CreateDaysCombinationsTable extends Migration
         {
             $table->id();
 
-            $table->string('days')->unique();
+            $table->string('days');
 
             $table->timestamps();
         });
