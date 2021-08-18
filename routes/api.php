@@ -29,6 +29,7 @@ Route::prefix('/professors')->group(function ()
     Route::prefix('/antiquity')->group(function ()
     {
         Route::get('/youngest', [ProfessorController::class, 'youngest']);
+
         Route::get('/oldest', [ProfessorController::class, 'oldest']);
     });
 });
@@ -37,8 +38,16 @@ Route::prefix('/professors')->group(function ()
 Route::prefix('/classes')->group(function ()
 {
     Route::get('/only', [RoomclassController::class, 'only']);
+
+    Route::get('/{value}/studentsByType', [RoomclassController::class, 'getStudentsByCriteria'])
+        ->defaults('criteria', 'type')
+        ->defaults('modifier', null);
+
     Route::get('/{id}/students', [RoomclassController::class, 'listStudents']);
-    Route::get('/{id}/debtors/{byType?}', [RoomclassController::class, 'getDebtorsByCriteria']);
+
+    Route::get('/{value}/debtors/{byType?}', [RoomclassController::class, 'getStudentsByCriteria'])
+        ->defaults('criteria', 'id')
+        ->defaults('modifier', 'debtor');
 });
 
 Route::prefix('/customers')->group(function ()
@@ -47,7 +56,11 @@ Route::prefix('/customers')->group(function ()
 });
 
 Route::apiResource('rooms', RoomController::class);
+
 Route::apiResource('days', DaysCombinationController::class);
+
 Route::apiResource('customers', CustomerController::class);
+
 Route::apiResource('classes', RoomclassController::class);
+
 Route::apiResource('professors', ProfessorController::class);

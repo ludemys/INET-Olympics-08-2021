@@ -166,7 +166,7 @@ class Controller extends BaseController
      * 
      * @return Illuminate\Http\Response
      */
-    protected static function throw(Throwable $error, int|string $code = null): Response
+    protected static function throw(Throwable $error, int $code = null): Response
     {
         return new Response(
             $error->getMessage(),
@@ -225,7 +225,7 @@ class Controller extends BaseController
      * 
      * @return string
      */
-    protected static function addZerosToLeft(string $number, int $upTo): string
+    protected static function addZerosToLeft(string $number, $upTo): string
     {
         $zeros = '';
 

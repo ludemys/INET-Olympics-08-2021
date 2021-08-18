@@ -96,34 +96,87 @@ class RoomclassController extends Controller implements ValidationInterface
 
     /**
      * Returns all the debt-ridden students in a given class by id or room type.
+     * @param string $criteria
+     * @param int|string $value
+     * @param bool $byType
+     * @param string $modifier
+     * 
+     * @return Response
+     * @throws DataException|Exception
      */
-    public function getDebtorsByCriteria(int $id, bool $byType = false)
+    public function getStudentsByCriteria($value, string $criteria = 'id', bool $byType = false, string $modifier = null)
     {
-        $this->checkIfModelExists($id);
-
-        if (!$byType)
+        switch ($criteria)
         {
-            return new Response(json_encode($this->getStudentsById($id, 'debtor')), 200);
+            case 'type':
+                RoomController::checkIfRoomExistsByType($value);
+                $rooms = RoomController::getRoomsByType($value);
+
+
+                if (count($rooms) == 1)
+                {
+                    $roomclasses = Roomclass::query()
+                        ->where('room_id', '=', $rooms[0]->id)
+                        ->get();
+                }
+                else
+                {
+                    $roomclasses = [];
+
+                    foreach ($rooms as $room)
+                    {
+                        $roomclasses_array = Roomclass::query()
+                            ->where('room_id', '=', $room->id)
+                            ->get();
+
+                        if ($roomclasses_array)
+                        {
+                            $roomclasses += $roomclasses_array->toArray();
+                        }
+                    }
+                }
+
+                break;
+            default: // Case 'id':
+                $value = (int)$value;
+                $this->checkIfModelExists($value);
+
+                if (!$byType)
+                {
+                    return new Response(json_encode($this->getStudentsById($value, 'debtor')), 200);
+                }
+
+                $type = Roomclass::query()
+                    ->where('id', '=', $value)->first()
+                    ->room->type;
+
+                $roomclasses = DB::table('roomclasses')
+                    ->join('rooms', 'roomclasses.room_id', '=', 'rooms.id')
+                    ->where('rooms.type', '=', $type)
+                    ->select('roomclasses.id')
+                    ->get();
+
+                break;
         }
-
-
-        $type = Roomclass::query()
-            ->where('id', '=', $id)->first()
-            ->room->type;
-
-        $roomclasses = DB::table('roomclasses')
-            ->join('rooms', 'roomclasses.room_id', '=', 'rooms.id')
-            ->where('rooms.type', '=', $type)
-            ->select('roomclasses.id')
-            ->get();
-
         $students = [];
 
         foreach ($roomclasses as $roomclass)
         {
+            if ($modifier !== null && $modifier === 'debtor')
+            {
+                $students = array_merge(
+                    $students,
+                    (array)$this->getStudentsById($roomclass['id'], 'debtor')
+                );
+
+                continue;
+            }
+
+            return var_dump($roomclass);
+            return var_dump($this->getStudentsById($roomclass['id']));
             $students = array_merge(
                 $students,
-                json_decode(json_encode($this->getStudentsById($roomclass->id, 'debtor')))
+                $this->getStudentsById($roomclass['id'])
             );
         }
 
@@ -141,6 +194,8 @@ class RoomclassController extends Controller implements ValidationInterface
 
         return new Response(json_encode($students), 200);
     }
+
+    // public function get
 
     public static function validateIndividually(Request $request)
     {
@@ -166,7 +221,7 @@ class RoomclassController extends Controller implements ValidationInterface
      */
     public function getStudentsById(int $id, string $modifier = null)
     {
-        $this->checkIfModelExists($id);
+        ($this->checkIfModelExists($id));
 
         // Asks for the students and throws an Exception if the query fails
         try

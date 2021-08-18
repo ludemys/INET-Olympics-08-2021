@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helpers\ValidationInterface;
 use App\Models\Room;
+use Dflydev\DotAccessData\Exception\DataException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Throwable;
@@ -61,5 +62,42 @@ class RoomController extends Controller implements ValidationInterface
         ]);
 
         $request['number'] = self::addZerosToLeft($request['number'], 3);
+    }
+
+    public static function checkIfRoomExistsByType(string $type)
+    {
+        (bool)$flag = Room::query()
+            ->where('type', '=', $type)
+            ->first();
+        try
+        {
+            if (!$flag)
+            {
+                throw new DataException("Room with type = $type not found", 404);
+            }
+        }
+        catch (DataException $error)
+        {
+            return self::throw($error, 404);
+        }
+    }
+    public static function getRoomsByType(string $type)
+    {
+        $room = Room::query()
+            ->where('type', '=', $type)
+            ->get();
+        try
+        {
+            if (!$room)
+            {
+                throw new DataException("Room with type = $type not found", 404);
+            }
+        }
+        catch (DataException $error)
+        {
+            return self::throw($error, 404);
+        }
+
+        return $room;
     }
 }
