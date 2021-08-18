@@ -22,7 +22,7 @@ class DaysCombinationsFactory extends Factory
     public function definition()
     {
         $days =
-            ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][rand(0, 6)] .
+            ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][rand(0, 6)] . '-' .
             ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'][rand(0, 6)];
         return [
             'days' => $days
