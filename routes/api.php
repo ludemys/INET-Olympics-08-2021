@@ -41,6 +41,11 @@ Route::prefix('/classes')->group(function ()
     Route::get('/{id}/debtors/{byType?}', [RoomclassController::class, 'getDebtorsByCriteria']);
 });
 
+Route::prefix('/customers')->group(function ()
+{
+    Route::get('/{id}/classes', [CustomerController::class, 'getAllClasses']);
+});
+
 Route::apiResource('rooms', RoomController::class);
 Route::apiResource('days', DaysCombinationController::class);
 Route::apiResource('customers', CustomerController::class);

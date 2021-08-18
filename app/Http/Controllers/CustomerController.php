@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Helpers\ValidationInterface;
 use App\Models\Customer;
+use App\Models\Roomclass;
+use App\Models\RoomclassCustomer;
+use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Psy\TabCompletion\Matcher\FunctionsMatcher;
@@ -52,6 +55,56 @@ class CustomerController extends Controller implements ValidationInterface
         }
 
         return new Response(json_encode($customer), 201);
+    }
+
+    /**
+     * Returns all the classes for a given customer
+     * @param int $id
+     * 
+     * @return Response
+     * @throws Exception
+     */
+    public function getAllClasses(int $id)
+    {
+        $this->checkIfModelExists($id);
+
+        // Asks for the roomclasses and throws an Exception if the query fails
+        try
+        {
+            $roomclass_customer = new RoomclassCustomer();
+            $roomclasses_ids = $roomclass_customer->query()
+                ->where('customer_id', '=', $id)
+                ->get('roomclass_id');
+
+            if (!isset($roomclasses_ids) || !$roomclasses_ids)
+            {
+                throw new Exception('There was an unknown error while getting your data. Please, try again', 500);
+            }
+        }
+        catch (Exception $error)
+        {
+            return self::throw($error);
+        }
+
+        // Returns OK if there is no registers on $students_id
+        if (count($roomclasses_ids) < 1)
+        {
+            return new Response(json_encode($roomclasses_ids), 200);
+        }
+
+        $roomclasses = array();
+
+        foreach ($roomclasses_ids as $roomclass)
+        {
+            array_push(
+                $roomclasses,
+                Roomclass::query()
+                    ->where('id', '=', $roomclass->roomclass_id)
+                    ->first()
+            );
+        }
+
+        return new Response(json_encode($roomclasses), 200);
     }
 
     public static function validateIndividually(Request $request)
