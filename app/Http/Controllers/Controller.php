@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use Dflydev\DotAccessData\Exception\DataException;
 use Exception;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Bus\DispatchesJobs;
@@ -35,7 +36,7 @@ class Controller extends BaseController
      * 
      * @throws Throwable
      */
-    public function index()
+    public function index(): Response
     {
         $rooms = $this->getModelName()::all();
 
@@ -55,7 +56,7 @@ class Controller extends BaseController
      * 
      * @throws Throwable
      */
-    public function show($id)
+    public function show($id): Response
     {
         try
         {
@@ -77,7 +78,7 @@ class Controller extends BaseController
      * @return \Illuminate\Http\Response
      * @throws Throwable
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id): Response
     {
         // Verifies if the register exists
         try
@@ -133,7 +134,7 @@ class Controller extends BaseController
      * 
      * @throws Throwable|LogicException
      */
-    public function destroy($id)
+    public function destroy($id): Response
     {
         // Verifies if the register exists
         try
@@ -165,7 +166,7 @@ class Controller extends BaseController
      * 
      * @return Illuminate\Http\Response
      */
-    protected static function throw(Throwable $error, int|string $code = null)
+    protected static function throw(Throwable $error, int|string $code = null): Response
     {
         return new Response(
             $error->getMessage(),
@@ -215,7 +216,7 @@ class Controller extends BaseController
 
     public static function validateIndividually(Request $request)
     {
-        self::throw(new \Exception("A server loading error has occurred", 500));
+        return self::throw(new \Exception("A server loading error has occurred", 500));
     }
 
     /**
@@ -224,7 +225,7 @@ class Controller extends BaseController
      * 
      * @return string
      */
-    protected static function addZerosToLeft(string $number, int $upTo)
+    protected static function addZerosToLeft(string $number, int $upTo): string
     {
         $zeros = '';
 
@@ -237,5 +238,27 @@ class Controller extends BaseController
         }
 
         return $zeros . $number;
+    }
+
+    /**
+     * Verifies if registry with id = $id exists.
+     * 
+     * @param int $id
+     * 
+     * @throws DataException
+     */
+    protected function checkIfModelExists(int $id)
+    {
+        try
+        {
+            if (!$this->getModelName()::findOrFail($id))
+            {
+                throw new DataException("Class with id = $id not found", 404);
+            }
+        }
+        catch (DataException $error)
+        {
+            return self::throw($error, 404);
+        }
     }
 }

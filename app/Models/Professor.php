@@ -13,6 +13,6 @@ class Professor extends Model
 
     public function roomclasses()
     {
-        return $this->hasMany(Roomclass::class, 'roomclasses_id');
+        return $this->hasMany(Roomclass::class, 'id');
     }
 }

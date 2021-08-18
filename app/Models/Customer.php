@@ -13,6 +13,6 @@ class Customer extends Model
 
     public function roomclasses()
     {
-        return $this->belongsToMany(Roomclass::class, 'roomclass_customer');
+        return $this->belongsToMany(Roomclass::class, 'id');
     }
 }

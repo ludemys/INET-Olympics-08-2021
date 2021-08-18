@@ -13,15 +13,15 @@ class Roomclass extends Model
 
     public function daysCombination()
     {
-        return $this->hasOne(DaysCombinations::class, 'days_combination_id');
+        return $this->hasOne(DaysCombinations::class, 'id');
     }
     public function room()
     {
-        return $this->hasOne(Room::class, 'room_id');
+        return $this->hasOne(Room::class, 'id');
     }
 
     public function customers()
     {
-        return $this->belongsToMany(Customer::class, 'roomclass_customer');
+        return $this->belongsToMany(Customer::class, 'id');
     }
 }

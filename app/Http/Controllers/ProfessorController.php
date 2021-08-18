@@ -49,47 +49,67 @@ class ProfessorController extends Controller
     }
 
     /**
-     * Search for a group of register based on a parameter passed through GET method.
+     * Returns the oldest professor by antiquity
      * 
      * @return Response
-     * @throws Throwable
+     * @throws Exception
      */
-    // public function search()
-    // {
-    //     // Checks if there is any parameter.
-    //     try
-    //     {
-    //         if (!isset($_GET))
-    //         {
-    //             throw new DataException('Wrong URL: Parameter missed', 404);
-    //         }
-    //     }
-    //     catch (DataException $error)
-    //     {
-    //         self::throw($error, 404);
-    //     }
+    public function oldest()
+    {
+        $minEntryDate = Professor::query()
+            ->get('entry_date')
+            ->min('entry_date');
 
-    //     // Checks if the parameter passed by GET is in $fillable property on this class and the classes with foreign keys on it.
-    //     try
-    //     {
-    //         $flag = false;
-    //         foreach ($this->getFillable() as $column)
-    //         {
-    //             if (in_array(strtolower($column), $_GET))
-    //             {
-    //                 $flag = true;
-    //                 break;
-    //             }
-    //         }
-    //         if (!$flag)
-    //         {
-    //         }
-    //     }
-    //     catch (DataException $error)
-    //     {
-    //         self::throw($error, 404);
-    //     }
-    // }
+        $professor = Professor::query()
+            ->where('entry_date', '=', $minEntryDate)
+            ->first();
+
+        try
+        {
+            if (!$professor)
+            {
+                throw new Exception('There was an unknown error while getting your data. Please, try again', 500);
+            }
+        }
+        catch (Exception $error)
+        {
+            return self::throw($error);
+        }
+
+        return new Response(json_encode($professor), 200);
+    }
+
+    /**
+     * Returns the youngest professor by antiquity
+     * 
+     * @return Response
+     * @throws Exception
+     */
+    public function youngest()
+    {
+        $minEntryDate = Professor::query()
+            ->get('entry_date')
+            ->max('entry_date');
+
+        $professor = Professor::query()
+            ->where('entry_date', '=', $minEntryDate)
+            ->first();
+
+        try
+        {
+            if (!$professor)
+            {
+                throw new Exception('There was an unknown error while getting your data. Please, try again', 500);
+            }
+        }
+        catch (Exception $error)
+        {
+            return self::throw($error);
+        }
+
+        return new Response(json_encode($professor), 200);
+    }
+
 
     public static function validateIndividually(Request $request)
     {
