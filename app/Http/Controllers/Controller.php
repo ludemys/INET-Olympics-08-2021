@@ -78,7 +78,7 @@ class Controller extends BaseController
      * @return \Illuminate\Http\Response
      * @throws Throwable
      */
-    public function update(Request $request, $id): Response
+    public function update(Request $request, $id)
     {
         // Verifies if the register exists
         try
@@ -110,6 +110,7 @@ class Controller extends BaseController
                     $model[$key] = $value;
                 }
             }
+            return $model;
 
             $this->getModelName()::query()
                 ->where('id', '=', $id)

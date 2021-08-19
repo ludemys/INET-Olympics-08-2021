@@ -6,11 +6,14 @@ use App\Helpers\ValidationInterface;
 use App\Models\Customer;
 use App\Models\Roomclass;
 use App\Models\RoomclassCustomer;
+use Dflydev\DotAccessData\Exception\DataException;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Psy\TabCompletion\Matcher\FunctionsMatcher;
+use Throwable;
 
 class CustomerController extends Controller implements ValidationInterface
 {
@@ -57,6 +60,41 @@ class CustomerController extends Controller implements ValidationInterface
         catch (\Throwable $error)
         {
             return self::throw($error);
+        }
+
+        if ($request->has('classes_json'))
+        {
+            $customer_id = DB::table('customers')
+                ->select(['id'])
+                ->orderByDesc('id')
+                ->offset(1)
+                ->first();
+
+            $classes_json = $request->input('classes_json');
+            $roomclass_controller = new RoomclassController();
+
+            foreach ($classes_json as $class_id)
+            {
+                try
+                {
+                    $roomclass_controller->checkIfModelExists($class_id);
+
+                    $roomclass_customer = new RoomclassCustomer([
+                        'customer_id' => $customer_id->id,
+                        'roomclass_id' => $class_id,
+                    ]);
+
+                    $roomclass_customer->save();
+                }
+                catch (Throwable $error)
+                {
+                    if ($error instanceof DataException)
+                    {
+                        return self::throw($error, 404);
+                    }
+                    return self::throw($error);
+                }
+            }
         }
 
         return new Response(json_encode($customer), 201);
@@ -112,8 +150,36 @@ class CustomerController extends Controller implements ValidationInterface
         return new Response(json_encode($roomclasses), 200);
     }
 
-    public static function validateIndividually(Request $request)
+    public static function validateIndividually(Request $request, bool $invoker_is_store_method = false)
     {
+        if ($invoker_is_store_method)
+        {
+            $validator = Validator::make($request->all(), [
+                'number' => 'required|string|digits_between:1,10|unique:customers',
+                'full_name' => 'required|string|max:50|regex:(^[a-zA-Z ])',
+                'address' => 'required|string|max:255|regex:(^[a-zA-Z0-9 ])',
+                'phone_number' => 'required|string|max:15|regex:(^[0-9\-+ ])',
+                'profession' => 'required|string|max:255|regex:(^[a-zA-Z ])',
+                'is_up_to_date' => 'nullable|boolean',
+                'classes_json' => 'nullable|json'
+            ]);
+
+            if ($request->has('classes_json'))
+            {
+                $classes_json = json_decode($request->input('classes_json'));
+
+                foreach ($classes_json as $class_id)
+                {
+                    Validator::make(
+                        ['class_id' => $class_id],
+                        [
+                            'class_id' => 'numeric|digits_between:1,255|regex:(^[0-9])'
+                        ]
+                    );
+                }
+            }
+        }
+
         $validator = Validator::make($request->all(), [
             'number' => 'required|string|digits_between:1,10|unique:customers',
             'full_name' => 'required|string|max:50|regex:(^[a-zA-Z ])',
