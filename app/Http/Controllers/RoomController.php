@@ -55,7 +55,7 @@ class RoomController extends Controller implements ValidationInterface
     public static function validateIndividually(Request $request)
     {
         $request->validate([
-            'number' => 'required|digits:3|max:3|unique:rooms,number',
+            'number' => 'required|numeric|max:3|unique:rooms,number',
             'size' => 'required|max:8',
             'location' => 'required|string|max:255',
             'type' => 'nullable|string|max:255',

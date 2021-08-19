@@ -9,6 +9,7 @@ use App\Models\RoomclassCustomer;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Validator;
 use Psy\TabCompletion\Matcher\FunctionsMatcher;
 
 class CustomerController extends Controller implements ValidationInterface
@@ -43,6 +44,10 @@ class CustomerController extends Controller implements ValidationInterface
         if ($request['is_up_to_date'] && isset($request['is_up_to_date']) && $request['is_up_to_date'] !== null)
         {
             $customer->is_up_to_date = $request['is_up_to_date'];
+        }
+        else
+        {
+            $customer->is_up_to_date = false;
         }
 
         try
@@ -109,12 +114,12 @@ class CustomerController extends Controller implements ValidationInterface
 
     public static function validateIndividually(Request $request)
     {
-        $request->validate([
-            'number' => 'required|string|max:10|regex:[^0-9]|unique:customer,number',
-            'full_name' => 'required|string|max:50|regex:[^a-zA-Z ]',
-            'address' => 'required|string|max:255|regex:[^a-zA-Z0-9 ]',
-            'phone_number' => 'required|string|max:15|regex:[^0-9\-]',
-            'profession' => 'required|string|max:255|regex:[^a-zA-Z0-9 ]',
+        $validator = Validator::make($request->all(), [
+            'number' => 'required|string|digits_between:1,10|unique:customers',
+            'full_name' => 'required|string|max:50|regex:(^[a-zA-Z ])',
+            'address' => 'required|string|max:255|regex:(^[a-zA-Z0-9 ])',
+            'phone_number' => 'required|string|max:15|regex:(^[0-9\-+ ])',
+            'profession' => 'required|string|max:255|regex:(^[a-zA-Z ])',
             'is_up_to_date' => 'nullable|boolean',
         ]);
 

@@ -7,6 +7,7 @@ use Dflydev\DotAccessData\Exception\DataException;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Validator;
 
 class ProfessorController extends Controller
 {
@@ -113,12 +114,12 @@ class ProfessorController extends Controller
 
     public static function validateIndividually(Request $request)
     {
-        $request->validate([
-            'full_name' => 'required|string|max:50|regex:[^a-zA-Z ]',
+        $validator = Validator::make($request->all(), [
+            'full_name' => 'required|string|max:50|regex:(^[a-zA-Z ])',
             'dni' => 'required|string|max:8|unique:professors,dni',
-            'phone_number' => 'required|string|max:15|regex:[^0-9\-]',
-            'birthdate' => 'required|date|date_format:d-m-Y',
-            'entry_date' => 'required|date|date_format:d-m-Y|after:birthdate',
+            'phone_number' => 'required|string|max:15|regex:(^[0-9\-+])',
+            'birthdate' => 'required|date|date_format:Y-m-d',
+            'entry_date' => 'required|date|date_format:Y-m-d|after:birthdate',
         ]);
     }
 }

@@ -36,12 +36,15 @@ class RoomclassController extends Controller implements ValidationInterface
         $model = $this->getModelName();
         $roomclass = new $model([
             'number' => $request['number'],
-            'size' => $request['description'],
+            'size' => $request['size'],
+            'description' => $request['description'],
             'price' => $request['price'],
             'days_combination_id' => $request['days_combination_id'],
             'room_id' => $request['room_id'],
             'professor_id' => $request['professor_id'],
         ]);
+
+
 
         try
         {
@@ -49,7 +52,7 @@ class RoomclassController extends Controller implements ValidationInterface
         }
         catch (\Throwable $error)
         {
-            return self::throw($error);
+            return self::throw($error, 500);
         }
 
         return new Response(json_encode($roomclass), 201);
@@ -200,8 +203,8 @@ class RoomclassController extends Controller implements ValidationInterface
     public static function validateIndividually(Request $request)
     {
         $request->validate([
-            'number' => 'required|digits:4|max:4|unique:roomclasses,number',
-            'description' => 'required|string|max:500',
+            'number' => 'required|numeric|max:4|unique:roomclasses,number',
+            'description' => 'required|string',
             'price' => 'required',
             'days_combination_id' => 'required|numeric',
             'room_id' => 'required|numeric',

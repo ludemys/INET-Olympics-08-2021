@@ -166,11 +166,11 @@ class Controller extends BaseController
      * 
      * @return Illuminate\Http\Response
      */
-    protected static function throw(Throwable $error, int $code = null): Response
+    protected static function throw(Throwable $error, int $code = 500): Response
     {
         return new Response(
             $error->getMessage(),
-            $code ? $code : $error->getCode()
+            $code,
         );
     }
 
